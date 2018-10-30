@@ -1,0 +1,9 @@
+192.168.100.121 hdp1.int.morot.fr hdp1
+192.168.100.122 hdp2.int.morot.fr hdp2
+192.168.100.123 hdp3.int.morot.fr hdp3
+192.168.100.124 hdp4.int.morot.fr hdp4
+192.168.100.125 hdp5.int.morot.fr hdp5
+
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+

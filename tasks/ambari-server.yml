@@ -1,0 +1,26 @@
+---
+- hosts: hadoopambariserver
+  tasks:
+    - name: Create /root/.ssh directory
+      file:
+        path: /root/.ssh
+        state: present
+        owner: root
+        group: root
+        mode: 0700
+        state: directory
+  - name: deploy root ssh pubkey
+    copy:
+      src: /root/.ssh/id_rsa.pub
+      dest: /root/.ssh/id_rsa.pub
+      owner: root
+      group: root
+      mode: 0644
+  - name: deploy root ssh privkey
+    copy:
+      src: /root/.ssh/id_rsa
+      dest: /root/.ssh/id_rsa
+      owner: root
+      group: root
+      mode: 0600
+
