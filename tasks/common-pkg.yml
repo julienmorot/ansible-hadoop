@@ -1,0 +1,9 @@
+---
+- hosts: all
+  tasks:
+  - name: Add EPEL repo
+    yum:
+      name: epel-release
+      state: present
+
+

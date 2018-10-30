@@ -1,0 +1,44 @@
+---
+- hosts: hadoopdb
+  tasks:
+    - name: Ensure mysqld is installed
+      yum:
+        name: mariadb-server
+        state: present
+# required for mysql_db
+    - name: Ensure mysql python is installed
+      yum:
+        name: MySQL-python
+        state: present
+    - name: Ensure mysqld is started
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: Create ranger database
+      mysql_db:
+        name: rangerdba
+        state: present
+    - name: Install setuptools
+      yum:
+        name: python-setuptools
+        state: present
+    - name: Install mysql-connector-java
+      yum:
+        name: mysql-connector-java
+        state: present
+    - name: Install Python PIP
+      yum:
+        name: python2-pip
+        state: present
+# required for mysql_user
+    - name: Install python PyMySQL
+      pip:
+        name: PyMySQL
+    - name: MySQL Authorizations
+      mysql_user:
+        name: rangerdba
+        password: rangerdba
+        priv: '*.*:ALL,GRANT'
+        state: present
+        host: '%'
