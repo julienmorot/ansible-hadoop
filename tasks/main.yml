@@ -1,5 +1,4 @@
 ---
 # tasks file for ansible-hadoop
-  - import_playbook: ulimits.yml
-  - import_playbook: ssh.ymk
-  - import_playbook: ntp.yml
+  - import_playbook: common-pkg.yml
+  - import_playbook: common-sys.yml

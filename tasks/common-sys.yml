@@ -1,0 +1,31 @@
+---
+- hosts: hadoop
+  tasks:
+    - name: Ensure chrony is installed
+      yum:
+        name: chrony
+        state: present
+    - name: Ensure chrony is started
+      service:
+        name: chronyd
+        state: started
+        enabled: yes
+  - name: deploy root ssh key
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+  - name: nofile soft ulimit
+    pam_limits:
+      domain: '*'
+      limit_type: soft
+      limit_item: nofile
+      value: 10000
+  - name: nofile hard limit
+    pam_limits:
+      domain: '*'
+      limit_type: hard
+      limit_item: nofile
+      value: 10000
+
+
