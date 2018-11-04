@@ -1,26 +1,115 @@
 ---
 - hosts: hadoopambariserver
+  vars:
+    java_path: "/usr/lib/jvm/jre-1.8.0-openjdk"
+    jdbc_mariadb_path: "/usr/share/java/mysql-connector-java.jar"
+    jdbc_db: "mysql"
+    ambari_db_type: "mysql"
+    ambari_mariadb_server: "localhost"
+    ambari_mariadb_port: "3306"
+    ambari_mariadb_name: "ambari"
+    ambari_mariadb_user: "ambari"
+    ambari_mariadb_password: "ambari"
+    ambari_mariadb_init_sql: "/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql"
   tasks:
     - name: Create /root/.ssh directory
       file:
         path: /root/.ssh
-        state: present
         owner: root
         group: root
         mode: 0700
         state: directory
-  - name: deploy root ssh pubkey
-    copy:
-      src: /root/.ssh/id_rsa.pub
-      dest: /root/.ssh/id_rsa.pub
-      owner: root
-      group: root
-      mode: 0644
-  - name: deploy root ssh privkey
-    copy:
-      src: /root/.ssh/id_rsa
-      dest: /root/.ssh/id_rsa
-      owner: root
-      group: root
-      mode: 0600
+    - name: deploy root ssh pubkey
+      copy:
+        src: /root/.ssh/id_rsa.pub
+        dest: /root/.ssh/id_rsa.pub
+        owner: root
+        group: root
+        mode: 0644
+    - name: deploy root ssh privkey
+      copy:
+        src: /root/.ssh/id_rsa
+        dest: /root/.ssh/id_rsa
+        owner: root
+        group: root
+        mode: 0600
+    - name: Install ambari-server
+      yum:
+        name: ambari-server
+        state: present
+    - name: Ensure mysqld is installed
+      yum:
+        name: mariadb-server
+        state: present
+# required for mysql_db
+    - name: Ensure mysql python is installed
+      yum:
+        name: MySQL-python
+        state: present
+    - name: Ensure mysqld is started
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: Install setuptools
+      yum:
+        name: python-setuptools
+        state: present
+    - name: Install mysql-connector-java
+      yum:
+        name: mysql-connector-java
+        state: present
+    - name: Install Python PIP
+      yum:
+        name: python2-pip
+        state: present
+# required for mysql_user
+    - name: Install python PyMySQL
+      pip:
+        name: PyMySQL
+    - name: MySQL Authorizations
+      mysql_user:
+        name: "{{ ambari_mariadb_user }}"
+        password: "{{ ambari_mariadb_password }}"
+        priv: "{{ambari_mariadb_name}}.*:ALL"
+        state: present
+        host: "{{ ansible_fqdn }}"
+    - name: Create ambari database
+      mysql_db:
+        name: "{{ ambari_mariadb_name }}"
+        state: present
+    - name: Import ambari database
+      shell: "/usr/bin/mysql -u {{ ambari_mariadb_user }} --password={{ ambari_mariadb_password }} {{ ambari_mariadb_name }} < {{ ambari_mariadb_init_sql }}"
+      run_once: true
+#      mysql_db:
+#        name: "{{ ambari_mariadb_name }}"
+#        state: import
+#        target: "{{ ambari_mariadb_init_sql }} " 
+# Java and DB setup Must be done in two steps : https://community.hortonworks.com/content/supportkb/177628/errorreason-db-name-property-not-set-in-config-fil.html
+    - name: Ambari Server Java setup
+      shell: "/usr/sbin/ambari-server setup -s --java-home={{ java_path }} \
+        --jdbc-db={{ jdbc_db }} \
+        --jdbc-driver={{ jdbc_mariadb_path }} "
+    - name: Ambari Server setup
+      shell: "/usr/sbin/ambari-server setup -s --database={{ ambari_db_type }} \
+        --databasehost={{ ambari_mariadb_server }} \
+        --databaseport={{ ambari_mariadb_port }} \
+        --databasename={{ ambari_mariadb_name }} \
+        --databaseusername={{ ambari_mariadb_user }} \
+        --databasepassword={{ ambari_mariadb_password }} \
+        --enable-lzo-under-gpl-license "
+      notify: Restart service ambari-server
+    - name: Make sure the ambari-server service is started
+      service:
+        name: ambari-server
+        state: started
+    - name: Make sure the ambari-server service is enabled
+      service:
+        name: ambari-server
+        enabled: yes
+  handlers:
+    - name: Restart service ambari-server
+      service:
+        name: ambari-server
+        state: restarted
 

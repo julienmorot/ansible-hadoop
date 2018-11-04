@@ -36,6 +36,18 @@
         limit_type: hard
         limit_item: nofile
         value: 10000
+    - name: nproc soft ulimit
+      pam_limits:
+        domain: '*'
+        limit_type: soft
+        limit_item: nproc
+        value: 10000
+    - name: nproc hard limit
+      pam_limits:
+        domain: '*'
+        limit_type: hard
+        limit_item: nproc
+        value: 10000
     - name: deploy /etc/hosts
       copy:
 #        src: "{{ role_path }}/hosts"

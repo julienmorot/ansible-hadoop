@@ -1,0 +1,18 @@
+---
+- hosts: hadoop
+  tasks:
+  - name: Ambari Yum Repo
+    copy:
+      src: "/etc/ansible/roles/ansible-hadoop/files/ambari.repo"
+      dest: "/etc/yum.repos.d/ambari.repo"
+      owner: root
+      group: root
+      mode: 0644
+  - name: HDP Yum Repo
+    copy:
+      src: "/etc/ansible/roles/ansible-hadoop/files/hdp.repo"
+      dest: "/etc/yum.repos.d/hdp.repo"
+      owner: root
+      group: root
+      mode: 0644
+
